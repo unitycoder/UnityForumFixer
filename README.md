@@ -2,6 +2,7 @@
 GreaseMonkey plugin to improve Unity forums
 
 ### Fixes
+- Add Asset Store link at the top
 - hide welcome banner
 - remove search bar padding
 - hide big bg image
