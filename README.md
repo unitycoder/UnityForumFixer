@@ -42,3 +42,5 @@ GreaseMonkey plugin to improve Unity forums
 ### After *current WIP
 ![image](https://github.com/user-attachments/assets/539898b3-8638-46c1-ada2-d5781b42e741)
 
+### Related repos
+- Unity Hub Improvements https://github.com/unitycoder/UnityHubModding
