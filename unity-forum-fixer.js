@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.1 (21.08.2024)
-// @description  Fixes For Unity Forums
+// @version      0.3 (23.08.2024)
+// @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/*
 // @grant        none
@@ -17,19 +17,25 @@
       
       AppendCustomCSS();
       AddAssetStoreLink();
-      // ShowOriginalPosterInfo(); // TODO needs some css adjustments for name location
-      //setTimeout(test, 1000);
-      FixPostActivityTime();
-      setTimeout(OnUpdate, 1000); // run loop to update activity times (since some script changes them back to original..)
       NavBar();
+      TopicsViewShowOriginalPosterInfo(); // TODO needs some css adjustments for name location
+      FixPostActivityTime();
+      PostViewShowOriginalPosterInfo();
+
+      setTimeout(OnUpdate, 1000); // run loop to update activity times (since some script changes them back to original..)
     });
 })();
 
+// runs every second to update things (if you scroll the page, need to update new data)
+// TODO could be better to catch page change/update some other way (xhrevent, mutation..), since it doesnt update now if click some item (like open post)
 function OnUpdate()
 {
   FixPostActivityTime();
+  TopicsViewShowOriginalPosterInfo();
   setTimeout(OnUpdate, 1000);
 }
+
+
 
 function AppendCustomCSS()
 {
@@ -37,6 +43,11 @@ function AppendCustomCSS()
 	var style = document.createElement('style');
 	style.textContent = 
   `
+  // latest posts view
+	.show-more.has-topics { width: 35%;!important;} /* updated topics alert */
+  .alert.alert-info.clickable {width: 35%; padding:3px !important;} /* updated topics alert */
+            
+  
   .wrap.custom-search-banner-wrap h1 {display: none;} /* hide welcome banner */
   .wrap.custom-search-banner-wrap {padding:0px;} /* remove search bar padding */
 	:root {--d-background-image: none !important;} /* hide big bg image */
@@ -54,7 +65,7 @@ function AppendCustomCSS()
   .title.raw-link.raw-topic-link:hover {color: rgb(82,132,189) !important;  text-decoration: underline !important;} /*post title hover */
   .topic-list .topic-list-data:first-of-type {padding-left: 8px !important;} /* post topic rows, half the padding */
   .discourse-tags {font-size: 0.8em !important;} /* tags below post title, smaller */
-  .post-activity {font-size: 0.9em !important;}
+  .relative-date {font-size: 0.9em !important; color: rgb(150, 150, 150) !important;}
   .ember-view.bread-crumbs-left-outlet.breadcrumb-label {display: none !important;} /* "… or filter the topics via" */
   .navigation-container {--nav-space: 0 !important; padding-bottom: 6px;} /* navbar adjustments */
   .category-breadcrumb.ember-view {width:auto !important;} /* areas,categories,tags not 100% width */
@@ -62,14 +73,42 @@ function AppendCustomCSS()
   .select-kit-row .desc { font-size: 0.92em !important; margin-top:1px; color: #777777 !important; } /* new topic dropdown descriptions */
   
   .custom-search-banner-wrap > div {max-width:100% !important;} /* search bar maxwidth, need to find better location later */
-  .sidebar-wrapper {width: 222px !important; font-size: 0.99em !important;} /* sidebar */
+  .sidebar-wrapper {font-size: 0.99em !important;} /* sidebar */
   .sidebar-section-header-wrapper.sidebar-row {padding:4px !important;} /* sidebar headers bit to the left */
   .ember-view.sidebar-section-link.sidebar-row  {height:25px !important;} /* sidebar row heights */ 
   .sidebar-section-link-prefix .svg-icon {height: 12px !important; width: 12px !important;} /* sidebar icons smaller */
   
+  /* post view, username */
+	.user-name { margin-bottom: 5px; font-weight: bold; text-align: center; font-size: 0.9em; color: var(--primary); text-decoration: none; display: block; word-wrap: break-word; white-space: normal; width: 100%; } 
+	.user-name:hover { color: rgb(82,132,189); text-decoration: underline; }
+  .names.trigger-user-card {visibility: hidden !important;}
+  .row { display: flex; }
+	.topic-avatar { flex-basis: 10%; margin:0 !important; } 
+	.topic-body { flex-basis: 90%; } /* Ensure the main content adjusts accordingly */
+  .topic-avatar {background-color: #d1d1d132;}
+  .post-avatar { display: flex; flex-direction: column; align-items: center; } 
+	/*.avatar { margin: 4px; } bug in topic view*/
+  .topic-body {padding: 0 !important;}
+  .topic-map.--op {display: none !important;} /* hide view count under op post, could move it somewhere else later */
+  
+  .more-topics__container {display:none !important;} /* hide suggested topics at bottom */
+  /* unity footer & content - could hide it.. but then unity is sad*/ 
+  .unity-footer {font-size:0.7em !important; line-height: none !important; padding:0 !important; text-align:center !important;}
+  .footer.unity-footer .unity-footer-content {padding-left:10px !important; line-height: 12px !important;}
+  .unity-footer-content { display: flex; flex-direction: column; align-items: center; text-align: center; } 
+	.unity-footer-menu.unity-footer-menu-legal.processed { list-style: none; padding: 0; margin: 0; display: flex; justify-content: center; }
+	.unity-footer-menu.unity-footer-menu-legal.processed li { margin: 0 10px; }
+  
+  
+  /* custom added fields */
+  .original-poster-span {font: 13px/1.231 arial,helvetica,clean,sans-serif; color: rgb(150, 150, 150); } /* original poster below post title */
+  .latest-poster-span { display: block; word-break: break-all; max-width: 100%; } /* activity, latest poster */
+  
 	`;
 	document.head.appendChild(style);
 }
+
+// HEADER
 
 function AddAssetStoreLink()
 {
@@ -91,84 +130,6 @@ function AddAssetStoreLink()
   }
 }
 
-function ShowOriginalPosterInfo()
-{
-	// Select all <td> elements with the class 'posters topic-list-data'
-	var posterCells = document.querySelectorAll('td.posters.topic-list-data');
-
-	// Loop through each <td> element
-	posterCells.forEach(function(cell) 
-	{
-		// Select the first <a> element with a data-user-card attribute inside the current <td>
-		var firstUserLink = cell.querySelector('a[data-user-card]');
-		if (firstUserLink) 
-    {
-      // Get the value of the data-user-card attribute
-      var userCardValue = firstUserLink.getAttribute('data-user-card');
-
-      // Create a new <div> element to display the user card value
-      var userCardDiv = document.createElement('div');
-      userCardDiv.textContent = userCardValue;
-      userCardDiv.style.fontSize = '12px';  // Optional: make the text smaller
-      userCardDiv.style.marginTop = '4px';  // Optional: add some space above the text
-
-      // Insert the new <div> below the first image
-      firstUserLink.parentNode.insertBefore(userCardDiv, firstUserLink.nextSibling);
-		}
-	});
-}
-
-function FixPostActivityTime()
-{
- document.querySelectorAll('.relative-date').forEach(function(el) {
-            const dataTime = parseInt(el.getAttribute('data-time'), 10);
-            if (!dataTime) return;
-
-            const date = new Date(dataTime);
-            const now = new Date();
-            const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
-
-            let timeString;
-            if (diffInHours > 6) {
-                timeString = formatDateString(date);
-            } else {
-                const diffInMinutes = Math.floor((now - date) / (1000 * 60));
-                timeString = `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`;
-            }
-
-            el.textContent = timeString;
-        });
-}
-
-
-
-
-function formatDate(date) 
-{
-  const options = { hour: '2-digit', minute: '2-digit', hour12: false };
-  return date.toLocaleTimeString('en-GB', options); // Format as "HH:MM"
-}
-
-function formatDateString(date) 
-{
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
-  const oneWeekAgo = new Date(today);
-  oneWeekAgo.setDate(today.getDate() - 7);
-
-  if (date >= today.setHours(0, 0, 0, 0)) { // Today
-    return `Today at ${formatDate(date)}`;
-  } else if (date >= yesterday.setHours(0, 0, 0, 0)) { // Yesterday
-    return `Yesterday at ${formatDate(date)}`;
-  } else if (date >= oneWeekAgo) { // Within the past week
-    const dayName = date.toLocaleDateString('en-GB', { weekday: 'long' });
-    return `${dayName} at ${formatDate(date)}`;
-  } else { // Older than one week
-    return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-  }  
-}
-
 function NavBar()
 {
   // remove "try the" text
@@ -177,4 +138,154 @@ function NavBar()
       el.textContent = "Product Areas";
     }
   });
+}
+
+
+// FORUM VIEW
+
+function TopicsViewShowOriginalPosterInfo() 
+{
+    // Select all topic rows
+    const topicRows = document.querySelectorAll('tr.topic-list-item');
+
+    topicRows.forEach(row => {
+        // Find the first 'a' element inside the 'posters topic-list-data' cell that does not have the 'latest' class (Original Poster)
+        let firstPosterLink = row.querySelector('td.posters.topic-list-data a:not(.latest)');
+        
+        // If there is no such element, it might be a single poster with 'latest single' class
+        if (!firstPosterLink) {
+            firstPosterLink = row.querySelector('td.posters.topic-list-data a.latest.single');
+        }
+
+        if (firstPosterLink) {
+            // Extract the username from the 'data-user-card' attribute for the original poster
+            const originalPosterUsername = firstPosterLink.getAttribute('data-user-card');
+
+            // Find the topic creation date from the title attribute in the activity column
+            const activityCell = row.querySelector('td.activity');
+            const titleText = activityCell ? activityCell.getAttribute('title') : '';
+            const creationDateMatch = titleText.match(/Created: (.+?)(?:\n|$)/);
+
+            let creationDateFormatted = 'Unknown'; // Default to "Unknown" if no date is found
+            if (creationDateMatch) {
+                const creationDateStr = creationDateMatch[1];
+                const creationDate = new Date(creationDateStr);
+                creationDateFormatted = formatDateString(creationDate);
+            }
+
+            // Find the 'link-bottom-line' element to insert the original poster's name and creation date before it
+            const linkBottomLine = row.querySelector('td.main-link .link-bottom-line');
+            if (linkBottomLine && !row.querySelector('.original-poster-span')) {
+                // Create a new span element for the original poster's username and creation date
+                const originalPosterSpan = document.createElement('span');
+                originalPosterSpan.textContent = originalPosterUsername+","+creationDateFormatted;
+                originalPosterSpan.className = 'original-poster-span'; // Adding a class to prevent duplication
+                originalPosterSpan.style.display = 'block';  // Ensure it's placed as a block element
+
+                // Insert the original poster span before the link-bottom-line
+                linkBottomLine.parentNode.insertBefore(originalPosterSpan, linkBottomLine);
+            }
+        }
+
+        // Find the most recent poster (always marked with 'latest')
+        const latestPosterLink = row.querySelector('td.posters.topic-list-data a.latest');
+        if (latestPosterLink) {
+            // Extract the username from the 'data-user-card' attribute
+            const latestPosterUsername = latestPosterLink.getAttribute('data-user-card');
+
+            // Find the 'post-activity' element
+            const postActivity = row.querySelector('td.activity .post-activity');
+            if (postActivity && !row.querySelector('.latest-poster-span')) {
+                // Create a new span element for the latest poster's username
+                const latestPosterSpan = document.createElement('span');
+                latestPosterSpan.textContent = latestPosterUsername;
+                latestPosterSpan.className = 'latest-poster-span'; // Adding a class to prevent duplication
+                latestPosterSpan.style.display = 'block';  // Ensure it's placed as a block element
+
+                // Insert the latest poster span before the <a> tag, placing it outside the link
+                postActivity.parentNode.insertBefore(latestPosterSpan, postActivity);
+            }
+        }
+    });
+}
+
+function FixPostActivityTime() 
+{
+  document.querySelectorAll('.relative-date').forEach(function (el) 
+	{
+        const dataTime = parseInt(el.getAttribute('data-time'), 10);
+        if (!dataTime) return;
+
+        const date = new Date(dataTime);
+        const now = new Date();
+        const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+        const diffInHours = Math.floor(diffInMinutes / 60);
+
+        let timeString;
+        if (diffInHours >= 1) {
+            const remainingMinutes = diffInMinutes % 60;
+            if (remainingMinutes > 0) {
+                timeString = `${diffInHours} hour${diffInHours !== 1 ? 's' : ''} ${remainingMinutes} minute${remainingMinutes !== 1 ? 's' : ''} ago`;
+            } else {
+                timeString = `${diffInHours} hour${diffInHours !== 1 ? 's' : ''} ago`;
+            }
+        } else if (diffInMinutes >= 1) {
+            timeString = `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`;
+        } else {
+            timeString = `just now`;
+        }
+
+        el.textContent = timeString;
+    });
+}
+
+
+// POST VIEW
+
+function PostViewShowOriginalPosterInfo() 
+{
+    // Select all elements that contain the avatar with a data-user-card attribute
+    document.querySelectorAll('.trigger-user-card.main-avatar').forEach(function(avatar) {
+        // Get the user name from the data-user-card attribute
+        var userName = avatar.getAttribute('data-user-card');
+
+        // Create a new anchor element to wrap the user name and link to the profile
+        var userLink = document.createElement('a');
+        userLink.className = 'user-name';
+        userLink.href = 'https://discussions.unity.com/u/' + userName;
+        userLink.textContent = userName;
+
+        // Insert the user name link before the avatar image
+        avatar.parentNode.insertBefore(userLink, avatar);
+    });
+}
+
+
+
+// HELPER METHODS
+
+function formatDate(date) 
+{
+    const options = { hour: '2-digit', minute: '2-digit', hour12: false };
+    return date.toLocaleTimeString('en-GB', options); // Format as "HH:MM"
+}
+
+function formatDateString(date) 
+{
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    const oneWeekAgo = new Date(today);
+    oneWeekAgo.setDate(today.getDate() - 7);
+
+    if (date >= today.setHours(0, 0, 0, 0)) { // Today
+        return `Today at ${formatDate(date)}`;
+    } else if (date >= yesterday.setHours(0, 0, 0, 0)) { // Yesterday
+        return `Yesterday at ${formatDate(date)}`;
+    } else if (date >= oneWeekAgo) { // Within the past week
+        const dayName = date.toLocaleDateString('en-GB', { weekday: 'long' });
+        return `${dayName} at ${formatDate(date)}`;
+    } else { // Older than one week
+        return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
 }
