@@ -1,5 +1,6 @@
 # UnityForumFixer
-GreaseMonkey plugin to improve Unity forums
+GreaseMonkey plugin to improve Unity forums.<br>
+Supports both Light & Dark themes!
 
 ### Fixes
 - Add Asset Store link at the top
