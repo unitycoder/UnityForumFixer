@@ -28,10 +28,17 @@ GreaseMonkey plugin to improve Unity forums
 - move new topic button right
 - new topic drowdown description texts with different color and font size, easier to read compared to title & description in same color)
 - searchbar to 100% width (still need to adjust later for better location)
-- make sidebar smaller
 - sidebar topic headers to slightly left (instead of same intendation with items)
 - sidebar row heights smaller
 - sidebar icons smaller
+- show original poster name and topic creation date
+- show last activity username
+- post view: show username above user icon (instead of separately in the message area)
+- post view: add gray bg for user icon area
+- smaller new topics alert panel
+- hide suggested topics at bottom
+- make unity footer smaller and centered
+- and much more!
 
 ### TODO
 - Main list here https://github.com/unitycoder/UnityForumFixer/issues/1
@@ -40,7 +47,7 @@ GreaseMonkey plugin to improve Unity forums
 ![image](https://github.com/user-attachments/assets/a2f0c084-303c-43cf-b876-0440c32e802d)
 
 ### After *current WIP
-![image](https://github.com/user-attachments/assets/539898b3-8638-46c1-ada2-d5781b42e741)
+![image](https://github.com/user-attachments/assets/b8596ae6-9af2-42b9-aa46-4ae0591c881d)
 
 ### Related repos
 - Unity Hub Improvements https://github.com/unitycoder/UnityHubModding
