@@ -1,5 +1,5 @@
 # UnityForumFixer
-GreaseMonkey plugin to improve Unity forums.<br>
+Firefox [GreaseMonkey](https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/)-plugin to improve Unity forums.<br>
 Supports both Light & Dark themes!
 
 ### Fixes
