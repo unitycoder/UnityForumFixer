@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.4 (24.08.2024)
+// @version      0.41 (24.08.2024)
 // @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/*
@@ -21,7 +21,7 @@
       TopicsViewShowOriginalPosterInfo(); // TODO needs some css adjustments for name location
       FixPostActivityTime();
       PostViewShowOriginalPosterInfo();
-
+			TopicsViewCombineViewAndReplyCounts();
       setTimeout(OnUpdate, 1000); // run loop to update activity times (since some script changes them back to original..)
     });
 })();
@@ -49,8 +49,14 @@ function AppendCustomCSS()
             
   #main-outlet {width:auto !important;} /* smaller main forum width */
   
-  html .heatmap-med,html .heatmap-med a,html .heatmap-med .d-icon,html .heatmap-med {color: inherit !important;}  /* replies/views: heatmap colors */
-  html .heatmap-high,html .heatmap-high a,html .heatmap-high .d-icon,html .heatmap-high {color: inherit !important; font-weight:inherit !important;} /* replies/views: heatmap colors */
+  /* replies/views: heatmap colors */
+  html .heatmap-med,html .heatmap-med a,html .heatmap-med .d-icon,html .heatmap-med {color: inherit !important;}  
+  html .heatmap-high,html .heatmap-high a,html .heatmap-high .d-icon,html .heatmap-high {color: inherit !important; font-weight:inherit !important;}
+  
+  /* post titles */
+  .title.raw-link.raw-topic-link:link {font: bold 11pt 'Inter', sans-serif;}
+  .title.raw-link.raw-topic-link:hover {color: rgb(82,132,189) !important;  text-decoration: underline !important;}
+  body .main-link .title.raw-link.raw-topic-link:visited { font:normal !important; color: var(--primary) !important}
   
   .wrap.custom-search-banner-wrap h1 {display: none;} /* hide welcome banner */
   .wrap.custom-search-banner-wrap {padding:0px;} /* remove search bar padding */
@@ -65,10 +71,13 @@ function AppendCustomCSS()
   .is-solved-label.solved {font-weight: normal !important; font-size: 12px !important; padding: 1px !important; user-select: text !important; float: right !important; } /* resolved tag, initial fixes */
   .badge-category__icon {display: none !important;} /* hide badge category icon for now, since most of them seem to be unity logos */
   .is-solved-label {display: none !important;} /* hide unresolved span, since all are unresolved, unless marked solved? */
-  .title.raw-link.raw-topic-link {font: bold 14px/1.231 arial,helvetica,clean,sans-serif !important;} /* post title: orig forum has 13px, might use that later */
-  .title.raw-link.raw-topic-link:hover {color: rgb(82,132,189) !important;  text-decoration: underline !important;} /*post title hover */
   .topic-list .topic-list-data:first-of-type {padding-left: 8px !important;} /* post topic rows, half the padding */
   .discourse-tags {font-size: 0.8em !important;} /* tags below post title, smaller */
+  .discourse-tag.simple {border: 1px solid rgba(var(--primary-rgb), 0.05) !important;}
+  
+  /* if want to hide all question tags */
+  /* a[data-tag-name="question"] { display: none !important; }*/
+  
   .relative-date {font-size: 0.9em !important; color: rgb(150, 150, 150) !important;}
   .ember-view.bread-crumbs-left-outlet.breadcrumb-label {display: none !important;} /* "… or filter the topics via" */
   .navigation-container {--nav-space: 0 !important; padding-bottom: 6px;} /* navbar adjustments */
@@ -104,11 +113,17 @@ function AppendCustomCSS()
 	.unity-footer-menu.unity-footer-menu-legal.processed li { margin: 0 10px; }
   
   
-  /* custom added fields */
-  .original-poster-span {font: 13px/1.231 arial,helvetica,clean,sans-serif; color: rgb(150, 150, 150); } /* original poster below post title */
-  .latest-poster-span { display: block; word-break: break-all; max-width: 100%; } /* activity, latest poster */
+  /* added custom fields */
+  .original-poster-span {font: 13px 'Inter', sans-serif !important; color: rgb(150, 150, 150); } /* original poster below post title */
+  .latest-poster-span { display: block; word-break: break-all; max-width: 100%; font: 14px 'Inter', sans-serif !important;} /* activity, latest poster */
   
-	`;
+	.combined-views-container {display: flex;justify-content: space-between;width: 100%;white-space: nowrap; font-size:13px;}
+	.combined-views-label {color: rgb(150, 150, 150); text-align: left;}
+	.combined-views-number {color: var(--primary); margin-left: auto;text-align: right;}
+
+  
+  
+  `;
 	document.head.appendChild(style);
 }
 
@@ -211,6 +226,52 @@ function TopicsViewShowOriginalPosterInfo()
             }
         }
     });
+}
+
+function TopicsViewCombineViewAndReplyCounts()
+{
+    // Select all rows in the topic list
+    const rows = document.querySelectorAll('tr.topic-list-item');
+
+    // Iterate through each row
+    rows.forEach(row => {
+        // Get the "Replies" and "Views" cells
+        const repliesCell = row.querySelector('td.posts');
+        const viewsCell = row.querySelector('td.views');
+
+        // Check if both cells are present
+        if (repliesCell && viewsCell) {
+            // Create a new cell to combine the information
+            const combinedCell = document.createElement('td');
+            combinedCell.className = 'num topic-list-data combined-views'; // Add class for styling if needed
+            
+            combinedCell.innerHTML = `
+                <div class="combined-views-container">
+                    <span class="combined-views-label">Views:</span>
+                    <span class="combined-views-number">${viewsCell.innerText}</span>
+                </div>
+                <div class="combined-views-container">
+                    <span class="combined-views-label">Replies:</span>
+                    <span class="combined-views-number">${repliesCell.innerText}</span>
+                </div>
+            `;
+
+            // Insert the combined cell after the Replies cell
+            repliesCell.parentNode.insertBefore(combinedCell, repliesCell);
+
+            // Remove the original "Replies" and "Views" cells
+            repliesCell.remove();
+            viewsCell.remove();
+        }
+    });
+
+    // Modify the header to have a single "Views" column
+    const repliesHeader = document.querySelector('th.posts');
+    const viewsHeader = document.querySelector('th.views');
+    if (repliesHeader && viewsHeader) {
+        repliesHeader.textContent = 'Views'; // Set the new header title
+        viewsHeader.remove(); // Remove the "Views" header
+    }
 }
 
 function FixPostActivityTime() 
