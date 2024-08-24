@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.41 (24.08.2024)
+// @version      0.42 (25.08.2024)
 // @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/*
@@ -116,11 +116,10 @@ function AppendCustomCSS()
   /* added custom fields */
   .original-poster-span {font: 13px 'Inter', sans-serif !important; color: rgb(150, 150, 150); } /* original poster below post title */
   .latest-poster-span { display: block; word-break: break-all; max-width: 100%; font: 14px 'Inter', sans-serif !important;} /* activity, latest poster */
-  
 	.combined-views-container {display: flex;justify-content: space-between;width: 100%;white-space: nowrap; font-size:13px;}
 	.combined-views-label {color: rgb(150, 150, 150); text-align: left;}
 	.combined-views-number {color: var(--primary); margin-left: auto;text-align: right;}
-
+	.custom-post-username {color: var(--primary);}
   
   
   `;
@@ -316,7 +315,7 @@ function PostViewShowOriginalPosterInfo()
 
         // Create a new anchor element to wrap the user name and link to the profile
         var userLink = document.createElement('a');
-        userLink.className = 'user-name';
+        userLink.className = 'custom-post-username';
         userLink.href = 'https://discussions.unity.com/u/' + userName;
         userLink.textContent = userName;
 
