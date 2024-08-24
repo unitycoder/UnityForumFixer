@@ -50,8 +50,9 @@ Supports both Light & Dark themes!
 ![image](https://github.com/user-attachments/assets/a2f0c084-303c-43cf-b876-0440c32e802d)
 
 ### After *current WIP
-![image](https://github.com/user-attachments/assets/4cbf2c18-0953-4860-b572-c9d96cfb4006)
+![image](https://github.com/user-attachments/assets/054e24b1-7245-4177-b9a0-f90326802606)
 
 
-### Related repos
+### Related repos (to improve Unity usage experience)
 - Unity Hub Improvements https://github.com/unitycoder/UnityHubModding
+- Unity Launcher Pro https://github.com/unitycoder/UnityLauncherPro
