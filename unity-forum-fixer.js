@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.42 (25.08.2024)
+// @version      0.421 (25.08.2024)
 // @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/*
@@ -32,6 +32,7 @@ function OnUpdate()
 {
   FixPostActivityTime();
   TopicsViewShowOriginalPosterInfo();
+  PostViewShowOriginalPosterInfo();
   setTimeout(OnUpdate, 1000);
 }
 
@@ -310,6 +311,11 @@ function PostViewShowOriginalPosterInfo()
 {
     // Select all elements that contain the avatar with a data-user-card attribute
     document.querySelectorAll('.trigger-user-card.main-avatar').forEach(function(avatar) {
+        // Check if the user link has already been added
+        if (avatar.parentNode.querySelector('.custom-post-username')) {
+            return; // Skip to the next avatar if the user link already exists
+        }
+
         // Get the user name from the data-user-card attribute
         var userName = avatar.getAttribute('data-user-card');
 
