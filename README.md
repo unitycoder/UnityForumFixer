@@ -39,6 +39,8 @@ Supports both Light & Dark themes!
 - smaller new topics alert panel
 - hide suggested topics at bottom
 - make unity footer smaller and centered
+- latest posts view: make main area less wide
+- hot topics: disable orange color for view/reply counts
 - and much more!
 
 ### TODO
@@ -48,7 +50,8 @@ Supports both Light & Dark themes!
 ![image](https://github.com/user-attachments/assets/a2f0c084-303c-43cf-b876-0440c32e802d)
 
 ### After *current WIP
-![image](https://github.com/user-attachments/assets/b8596ae6-9af2-42b9-aa46-4ae0591c881d)
+![image](https://github.com/user-attachments/assets/4cbf2c18-0953-4860-b572-c9d96cfb4006)
+
 
 ### Related repos
 - Unity Hub Improvements https://github.com/unitycoder/UnityHubModding
