@@ -41,6 +41,8 @@ Supports both Light & Dark themes!
 - make unity footer smaller and centered
 - latest posts view: make main area less wide
 - hot topics: disable orange color for view/reply counts
+- Combine Views and Replies into one field
+- Optional: Hide all "question" tags
 - and much more!
 
 ### TODO
