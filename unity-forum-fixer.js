@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.3 (23.08.2024)
+// @version      0.4 (24.08.2024)
 // @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/*
@@ -47,6 +47,10 @@ function AppendCustomCSS()
 	.show-more.has-topics { width: 35%;!important;} /* updated topics alert */
   .alert.alert-info.clickable {width: 35%; padding:3px !important;} /* updated topics alert */
             
+  #main-outlet {width:auto !important;} /* smaller main forum width */
+  
+  html .heatmap-med,html .heatmap-med a,html .heatmap-med .d-icon,html .heatmap-med {color: inherit !important;}  /* replies/views: heatmap colors */
+  html .heatmap-high,html .heatmap-high a,html .heatmap-high .d-icon,html .heatmap-high {color: inherit !important; font-weight:inherit !important;} /* replies/views: heatmap colors */
   
   .wrap.custom-search-banner-wrap h1 {display: none;} /* hide welcome banner */
   .wrap.custom-search-banner-wrap {padding:0px;} /* remove search bar padding */
