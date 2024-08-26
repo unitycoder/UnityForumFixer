@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.5 (26.08.2024)
+// @version      0.52 (26.08.2024)
 // @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/latest
@@ -283,10 +283,8 @@ function TopicsViewCombineViewAndReplyCounts()
     }
 }
 
-function FixPostActivityTime() 
-{
-  document.querySelectorAll('.relative-date').forEach(function (el) 
-	{
+function FixPostActivityTime() {
+    document.querySelectorAll('.relative-date').forEach(function (el) {
         const dataTime = parseInt(el.getAttribute('data-time'), 10);
         if (!dataTime) return;
 
@@ -294,24 +292,30 @@ function FixPostActivityTime()
         const now = new Date();
         const diffInMinutes = Math.floor((now - date) / (1000 * 60));
         const diffInHours = Math.floor(diffInMinutes / 60);
+        const diffInDays = Math.floor(diffInHours / 24);
 
         let timeString;
-        if (diffInHours >= 1) {
-            const remainingMinutes = diffInMinutes % 60;
-            if (remainingMinutes > 0) {
-                timeString = `${diffInHours} hour${diffInHours !== 1 ? 's' : ''} ${remainingMinutes} minute${remainingMinutes !== 1 ? 's' : ''} ago`;
+        
+        if (diffInMinutes < 60) { // Less than 60 minutes
+            if (diffInMinutes === 0) {
+                timeString = `just now`;
             } else {
-                timeString = `${diffInHours} hour${diffInHours !== 1 ? 's' : ''} ago`;
+                timeString = `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`;
             }
-        } else if (diffInMinutes >= 1) {
-            timeString = `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`;
-        } else {
-            timeString = `just now`;
+        } else if (diffInHours < 24) { // Less than 24 hours
+            timeString = `${diffInHours} hour${diffInHours !== 1 ? 's' : ''} ago`;
+        } else if (diffInDays < 7) { // Within the last 7 days
+            const dayName = date.toLocaleDateString('en-GB', { weekday: 'long' }); // Get day name like 'Monday'
+            const formattedTime = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }); // Format as "HH:MM"
+            timeString = `${dayName} at ${formattedTime}`;
+        } else { // Older than 7 days
+            timeString = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }); // Format as "20 Sep 2024"
         }
 
         el.textContent = timeString;
     });
 }
+
 
 
 // POST VIEW
