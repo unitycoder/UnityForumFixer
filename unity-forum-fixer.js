@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.5 (26.08.2024)
+// @version      0.51 (26.08.2024)
 // @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/latest
 // @match        https://discussions.unity.com/t/*
-// @grant        none
+// @grant        GM.xmlHttpRequest
 // ==/UserScript==
+
 
 (function() {
     'use strict';
@@ -22,9 +23,11 @@
       TopicsViewShowOriginalPosterInfo(); // TODO needs some css adjustments for name location
       FixPostActivityTime();
       PostViewShowOriginalPosterInfo();
-			TopicsViewCombineViewAndReplyCounts();
+      TopicsViewCombineViewAndReplyCounts();
+      
       setTimeout(OnUpdate, 1000); // run loop to update activity times (since some script changes them back to original..)
     });
+  
 })();
 
 // runs every second to update things (if you scroll the page, need to update new data)
@@ -34,6 +37,8 @@ function OnUpdate()
   FixPostActivityTime();
   TopicsViewShowOriginalPosterInfo();
   PostViewShowOriginalPosterInfo();
+  PostViewFetchOPDetails();
+  
   setTimeout(OnUpdate, 1000);
 }
 
@@ -98,7 +103,7 @@ function AppendCustomCSS()
 	.user-name:hover { color: rgb(82,132,189); text-decoration: underline; }
   .names.trigger-user-card {visibility: hidden !important;}
 /*  .row { display: flex; } */
-	.topic-avatar { flex-basis: 10%; margin:0 !important; } 
+	.topic-avatar { flex-basis: 10%; margin:0 !important; max-width: 45px;} 
 	.topic-body { flex-basis: 90%; } /* Ensure the main content adjusts accordingly */
   .topic-avatar {background-color: #d1d1d132;}
   .post-avatar { display: flex; flex-direction: column; align-items: center; } 
@@ -107,6 +112,8 @@ function AppendCustomCSS()
   .topic-map.--op {display: none !important;} /* hide view count under op post, could move it somewhere else later */
   
   .user-signature {max-height:32px; overflow:hidden;padding: 8px 8px 4px 24px !important;} /* max size for signature */
+  .avatar-flair {top:55px; right: -2px; bottom:unset !important;}
+  
   
   .more-topics__container {display:none !important;} /* hide suggested topics at bottom */
   /* unity footer & content - could hide it.. but then unity is sad*/ 
@@ -123,8 +130,8 @@ function AppendCustomCSS()
 	.combined-views-container {display: flex;justify-content: space-between;width: 100%;white-space: nowrap; font-size:13px;}
 	.combined-views-label {color: rgb(150, 150, 150); text-align: left;}
 	.combined-views-number {color: var(--primary); margin-left: auto;text-align: right;}
-	.custom-post-username {color: var(--primary);}
-  
+	.custom-post-username {margin-bottom:3px;color: var(--primary);}
+  .custom-user-creation-date {width:45px;margin-top:6px;font: 13px 'Inter', sans-serif !important; color: rgb(150, 150, 150);}
   
   `;
 	document.head.appendChild(style);
@@ -331,7 +338,99 @@ function PostViewShowOriginalPosterInfo()
         // Insert the user name link before the avatar image
         avatar.parentNode.insertBefore(userLink, avatar);
     });
+ 
 }
+
+let prevPageURL = '';
+function PostViewFetchOPDetails() 
+{
+    // Get the current page URL
+    const currentPageURL = window.location.href;
+
+    // Check if the current page URL has already been processed
+    if (currentPageURL === prevPageURL) {
+        console.log(`Skipping fetch for already processed page URL: ${currentPageURL}`);
+        return; // Skip execution if the URL has already been processed
+    }
+
+    // Update the previous page URL to the current one
+    prevPageURL = currentPageURL;
+
+    // Select all elements with the specified classes to get usernames
+    const usernames = new Set(); // Using a Set to avoid duplicates
+
+    // Find usernames from elements with class 'trigger-user-card main-avatar'
+    document.querySelectorAll('.trigger-user-card.main-avatar').forEach(function(avatar) {
+        const userName = avatar.getAttribute('data-user-card');
+        if (userName) {
+            usernames.add(userName); // Add to the Set
+        }
+    });
+
+    // Convert the Set to an Array and limit to the first 3 users
+    const userArray = Array.from(usernames).slice(0, 3);
+
+    // Iterate through each of the first three unique usernames and fetch the JSON data
+    userArray.forEach(function(userName) {
+        const url = `https://discussions.unity.com/u/${userName}/card.json`;
+
+        console.log(`Fetching data from: ${url}`);
+
+        // Use fetch to make a cross-origin request
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'User-Agent': navigator.userAgent, // Mimic the default browser's User-Agent
+                'Accept': 'application/json, text/javascript, */*; q=0.01' // Accept JSON
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json(); // Parse the JSON data
+        })
+        .then(data => {
+            console.log(`Data for ${userName}:`, data); // Print the JSON data to console
+
+            // Get the user creation date
+            const createdAt = data.user.created_at;
+            if (createdAt) {
+                // Format the creation date (optional)
+                const formattedDate = new Date(createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+
+                // Create a new element to display the creation date
+                const creationDateElement = document.createElement('span');
+                creationDateElement.className = 'custom-user-creation-date';
+                creationDateElement.textContent = `Joined: ${formattedDate}`;
+
+                // Find all post-avatar divs associated with this user
+                document.querySelectorAll('.trigger-user-card.main-avatar').forEach(function(avatarElement) {
+                    if (avatarElement.getAttribute('data-user-card') === userName) {
+                        const postAvatarDiv = avatarElement.closest('.post-avatar');
+                        if (postAvatarDiv && !postAvatarDiv.querySelector('.custom-user-creation-date')) {
+                            postAvatarDiv.appendChild(creationDateElement.cloneNode(true)); // Append the new date element to all relevant divs
+                        }
+                    }
+                });
+            }
+        })
+        .catch(error => {
+            console.error(`Failed to fetch or parse JSON for user ${userName}:`, error);
+        });
+    });
+}
+
+// TODO: if page uses AJAX navigation, can run this function again when the URL changes without a full reload.
+/*
+window.addEventListener('popstate', function() {PostViewFetchOPDetails();});
+window.addEventListener('pushstate', function() {PostViewFetchOPDetails();});
+window.addEventListener('replacestate', function() {PostViewFetchOPDetails();});
+*/
 
 
 
