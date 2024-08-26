@@ -1,12 +1,11 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.51 (26.08.2024)
+// @version      0.5 (26.08.2024)
 // @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/latest
 // @match        https://discussions.unity.com/t/*
-// @grant        GM.xmlHttpRequest
 // ==/UserScript==
 
 
@@ -23,7 +22,7 @@
       TopicsViewShowOriginalPosterInfo(); // TODO needs some css adjustments for name location
       FixPostActivityTime();
       PostViewShowOriginalPosterInfo();
-      TopicsViewCombineViewAndReplyCounts();
+			TopicsViewCombineViewAndReplyCounts();
       
       setTimeout(OnUpdate, 1000); // run loop to update activity times (since some script changes them back to original..)
     });
