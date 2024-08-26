@@ -56,6 +56,6 @@ Supports both Light & Dark themes!
 ![image](https://github.com/user-attachments/assets/054e24b1-7245-4177-b9a0-f90326802606)
 
 
-### Related repos (to improve Unity usage experience)
+### Related repos (to improve Unity dev user experience)
 - Unity Hub Improvements https://github.com/unitycoder/UnityHubModding
 - Unity Launcher Pro https://github.com/unitycoder/UnityLauncherPro
