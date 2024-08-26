@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.52 (26.08.2024)
+// @version      0.6 (27.08.2024)
 // @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/latest
@@ -23,6 +23,7 @@
       FixPostActivityTime();
       PostViewShowOriginalPosterInfo();
 			TopicsViewCombineViewAndReplyCounts();
+      OnMouseOverPostPreview();
       
       setTimeout(OnUpdate, 1000); // run loop to update activity times (since some script changes them back to original..)
     });
@@ -131,6 +132,8 @@ function AppendCustomCSS()
 	.combined-views-number {color: var(--primary); margin-left: auto;text-align: right;}
 	.custom-post-username {margin-bottom:3px;color: var(--primary);}
   .custom-user-creation-date {width:45px;margin-top:6px;font: 13px 'Inter', sans-serif !important; color: rgb(150, 150, 150);}
+  .custom-post-preview { position: absolute; max-width: 450px; max-height: 200px; background-color: white; border: 1px solid black; padding: 5px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); z-index: 1000; }
+  
   
   `;
 	document.head.appendChild(style);
@@ -316,6 +319,91 @@ function FixPostActivityTime() {
     });
 }
 
+  let prevTopicId = '';  // Global variable to store the previously fetched topicId
+    let currentTooltip = null;  // Global variable to store the currently visible tooltip
+
+
+    // Initialize the mouseover event handler
+    function OnMouseOverPostPreview() {
+        document.querySelectorAll('a.title.raw-link.raw-topic-link[data-topic-id]').forEach(function (element) {
+            const topicId = element.getAttribute('data-topic-id');
+
+            // Add mouseover event listener to the <a> elements only
+            element.addEventListener('mouseover', function (event) {
+                if (topicId !== prevTopicId) {  // Check if the post data was already fetched
+                    fetchPostDataAndShowTooltip(event, topicId, element);
+                }
+            });
+
+            // Add mouseout event listener to hide tooltip
+            element.addEventListener('mouseout', function () {
+                hideTooltip();
+            });
+        });
+    }
+
+    // Function to fetch data and display tooltip
+    function fetchPostDataAndShowTooltip(event, topicId, element) 
+		{
+        const url = `https://discussions.unity.com/t/${topicId}.json`;
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                // Extract necessary data from JSON (limit to 250 characters)
+                const rawPostContent = data['post_stream']['posts'][0]['cooked'];
+          			const postContent = rawPostContent.length > 250 ? rawPostContent.substring(0, 250) + "..." : rawPostContent;
+          			const plainText = stripHtmlTags(postContent);
+
+                // Update the global variable to store the fetched topicId
+                prevTopicId = topicId;
+
+                // Create and position the tooltip based on the element's position
+                showTooltip(element, plainText);
+            })
+            .catch(error => {
+                console.error('Error fetching post data:', error);
+            });
+    }
+
+    // Function to create and show the tooltip
+    function showTooltip(element, content) {
+        hideTooltip();  // Ensure any existing tooltip is removed first
+
+        // Create a new tooltip element
+        currentTooltip = createTooltip(content);
+
+        // Get the bounding rectangle of the <a> element
+        const rect = element.getBoundingClientRect();
+
+        // Position the tooltip relative to the <a> element
+        currentTooltip.style.top = `${window.scrollY + rect.top - currentTooltip.offsetHeight - 10}px`; // 10px above the element
+        currentTooltip.style.left = `${window.scrollX + rect.left}px`;
+    }
+
+    // Function to hide the tooltip
+    function hideTooltip() {
+        if (currentTooltip) {
+            currentTooltip.remove();
+            currentTooltip = null;
+        }
+    }
+
+    // Function to create a tooltip element
+    function createTooltip(content) {
+        const tooltip = document.createElement('div');
+        tooltip.className = 'custom-post-preview'; // Assign the CSS class
+        tooltip.textContent = content;
+        document.body.appendChild(tooltip);
+        return tooltip;
+    }
+
+	function stripHtmlTags(html) 
+	{
+    const tempDiv = document.createElement("div"); // Create a temporary <div> element
+    tempDiv.innerHTML = html; // Set its inner HTML to the input HTML string
+    return tempDiv.textContent || tempDiv.innerText || ""; // Return the text content without HTML tags
+  }
 
 
 // POST VIEW
@@ -464,3 +552,4 @@ function formatDateString(date)
         return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     }
 }
+
