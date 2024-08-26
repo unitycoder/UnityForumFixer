@@ -43,6 +43,7 @@ Supports both Light & Dark themes!
 - hot topics: disable orange color for view/reply counts
 - Combine Views and Replies into one field
 - Optional: Hide all "question" tags
+- post view: Display registration date for OP and few other users *Note: requires JSON fetch, you can disable it by removing  PostViewFetchOPDetails() call inside update.
 - and much more!
 
 ### TODO
