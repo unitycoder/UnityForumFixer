@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.421 (25.08.2024)
+// @version      0.5 (26.08.2024)
 // @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
-// @match        https://discussions.unity.com/*
+// @match        https://discussions.unity.com/latest
+// @match        https://discussions.unity.com/t/*
 // @grant        none
 // ==/UserScript==
 
@@ -96,7 +97,7 @@ function AppendCustomCSS()
 	.user-name { margin-bottom: 5px; font-weight: bold; text-align: center; font-size: 0.9em; color: var(--primary); text-decoration: none; display: block; word-wrap: break-word; white-space: normal; width: 100%; } 
 	.user-name:hover { color: rgb(82,132,189); text-decoration: underline; }
   .names.trigger-user-card {visibility: hidden !important;}
-  .row { display: flex; }
+/*  .row { display: flex; } */
 	.topic-avatar { flex-basis: 10%; margin:0 !important; } 
 	.topic-body { flex-basis: 90%; } /* Ensure the main content adjusts accordingly */
   .topic-avatar {background-color: #d1d1d132;}
@@ -104,6 +105,8 @@ function AppendCustomCSS()
 	/*.avatar { margin: 4px; } bug in topic view*/
   .topic-body {padding: 0 !important;}
   .topic-map.--op {display: none !important;} /* hide view count under op post, could move it somewhere else later */
+  
+  .user-signature {max-height:32px; overflow:hidden;padding: 8px 8px 4px 24px !important;} /* max size for signature */
   
   .more-topics__container {display:none !important;} /* hide suggested topics at bottom */
   /* unity footer & content - could hide it.. but then unity is sad*/ 
@@ -113,7 +116,7 @@ function AppendCustomCSS()
 	.unity-footer-menu.unity-footer-menu-legal.processed { list-style: none; padding: 0; margin: 0; display: flex; justify-content: center; }
 	.unity-footer-menu.unity-footer-menu-legal.processed li { margin: 0 10px; }
   
-  
+    
   /* added custom fields */
   .original-poster-span {font: 13px 'Inter', sans-serif !important; color: rgb(150, 150, 150); } /* original poster below post title */
   .latest-poster-span { display: block; word-break: break-all; max-width: 100%; font: 14px 'Inter', sans-serif !important;} /* activity, latest poster */
