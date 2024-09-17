@@ -2,6 +2,9 @@
 Firefox [GreaseMonkey](https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/)-plugin to improve Unity forums.<br>
 Supports both Light & Dark themes!
 
+### Forum link
+- https://discussions.unity.com/t/browser-greasemonkey-script-to-fix-improve-new-forums-ui-ux/1507183
+
 ### Fixes
 - Add Asset Store link at the top
 - hide welcome banner
