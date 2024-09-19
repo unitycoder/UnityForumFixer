@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.61 (28.08.2024)
+// @version      0.7 (19.09.2024)
 // @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/latest
@@ -24,7 +24,6 @@
       PostViewShowOriginalPosterInfo();
 			TopicsViewCombineViewAndReplyCounts();
       OnMouseOverPostPreview();
-      OnMouseOverLastPostPreview();
       
       setTimeout(OnUpdate, 1000); // run loop to update activity times (since some script changes them back to original..)
     });
@@ -134,6 +133,7 @@ function AppendCustomCSS()
 	.custom-post-username {margin-bottom:3px;color: var(--primary);}
   .custom-user-creation-date {width:45px;margin-top:6px;font: 13px 'Inter', sans-serif !important; color: rgb(150, 150, 150);}
   .custom-post-preview { position: absolute; max-width: 450px; max-height: 200px; background-color: white; border: 1px solid black; padding: 5px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); z-index: 1000; }
+  
   
   `;
 	document.head.appendChild(style);
@@ -286,10 +286,8 @@ function TopicsViewCombineViewAndReplyCounts()
     }
 }
 
-function FixPostActivityTime() 
-{
-    document.querySelectorAll('.relative-date').forEach(function (el) 
-		{
+function FixPostActivityTime() {
+    document.querySelectorAll('.relative-date').forEach(function (el) {
         const dataTime = parseInt(el.getAttribute('data-time'), 10);
         if (!dataTime) return;
 
@@ -321,55 +319,24 @@ function FixPostActivityTime()
     });
 }
 
-  let prevOPTopicId = '';  // Global variable to store the previously fetched topicId for orignal poster
-  let prevLastTopicId = '';  // Global variable to store the previously fetched topicId for last poster
-  let currentTooltip = null;  // Global variable to store the currently visible tooltip
+  let prevTopicId = '';  // Global variable to store the previously fetched topicId
+    let currentTooltip = null;  // Global variable to store the currently visible tooltip
 
 
-  // Initialize the mouseover event handler
-	function OnMouseOverPostPreview() 
-	{
-      document.querySelectorAll('a.title.raw-link.raw-topic-link[data-topic-id]').forEach(function (element)
-			{
+    // Initialize the mouseover event handler
+    function OnMouseOverPostPreview() {
+        document.querySelectorAll('a.title.raw-link.raw-topic-link[data-topic-id]').forEach(function (element) {
             const topicId = element.getAttribute('data-topic-id');
 
             // Add mouseover event listener to the <a> elements only
             element.addEventListener('mouseover', function (event) {
-                if (topicId !== prevOPTopicId) {  // Check if the post data was already fetched
+                if (topicId !== prevTopicId) {  // Check if the post data was already fetched
                     fetchPostDataAndShowTooltip(event, topicId, element);
                 }
             });
 
             // Add mouseout event listener to hide tooltip
-            element.addEventListener('mouseleave', function () {
-              console.log("hide OnMouseOverPostPreview");
-              hideTooltip();
-            });
-        });
-    }
-
-	
-  function OnMouseOverLastPostPreview() 
-	{
-		document.querySelectorAll('a.post-activity').forEach(function (element)
-    {
-            const topicId = element.href.match(/\/t\/[^\/]+\/(\d+)/)[1]; // Extract the topic ID from the href attribute
-      			//console.log(">>>>> "+topicId);
-
-            // Add mouseover event listener to the <a> elements only
-            element.addEventListener('mouseover', function (event) 
-            {
-              console.log(">> mouseover OnMouseOverLastPostPreview");
-                if (topicId !== prevLastTopicId) {  // Check if the post data was already fetched
-                    fetchLastReplyDataAndShowTooltip(event, topicId, element);
-                }
-            });
-
-            // Add mouseleave event listener to hide tooltip
-            element.addEventListener('mouseleave', function () {
-                console.log("<< mouseleave OnMouseOverLastPostPreview");
-                //hideTooltip();
-            });
+            element.addEventListener('mouseout', function () {hideTooltip();});
         });
     }
 
@@ -387,7 +354,7 @@ function FixPostActivityTime()
           			const plainText = stripHtmlTags(postContent);
 
                 // Update the global variable to store the fetched topicId
-                prevOPTopicId = topicId;
+                prevTopicId = topicId;
 
                 // Create and position the tooltip based on the element's position
                 showTooltip(element, plainText);
@@ -397,35 +364,8 @@ function FixPostActivityTime()
             });
     }
 
-  // now uses title attribute, had some issues opening tooltip in right position
-  function fetchLastReplyDataAndShowTooltip(event, topicId, element) 
-  {
-    const url = `https://discussions.unity.com/t/${topicId}/posts.json`;
-    // console.log("fetching: " + url);
-
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            // Extract the last post from the post_stream array
-            const posts = data['post_stream']['posts'];
-            const lastPostContent = posts[posts.length - 1]['cooked'];
-            const postContent = lastPostContent.length > 350 ? lastPostContent.substring(0, 350) + "..." : lastPostContent;
-            const plainText = stripHtmlTags(postContent);
-
-            // Update the global variable to store the fetched topicId
-            prevLastTopicId = topicId;
-
-            // Set the tooltip content as the title attribute of the element
-            element.setAttribute('title', plainText);
-        })
-        .catch(error => {
-            console.error('Error fetching last reply data:', error);
-        });
-}
-
-    function showTooltip(element, content) 
-		{
-  		console.log("show tooltip now! "+content)
+    // Function to create and show the tooltip
+    function showTooltip(element, content) {
         hideTooltip();  // Ensure any existing tooltip is removed first
 
         // Create a new tooltip element
@@ -438,21 +378,23 @@ function FixPostActivityTime()
         currentTooltip.style.top = `${window.scrollY + rect.top - currentTooltip.offsetHeight - 10}px`; // 10px above the element
         currentTooltip.style.left = `${window.scrollX + rect.left}px`;
       
-      //console.log(element + " : "+currentTooltip.style.top+" , "+currentTooltip.style.left);
+      currentTooltip.addEventListener('mouseover', function () {
+        hideTooltip();
+	    });
     }
 
-    function hideTooltip() 
-		{
-        console.log("hide tooltip now");
+    // Function to hide the tooltip
+    function hideTooltip() {
         if (currentTooltip) {
             currentTooltip.remove();
             currentTooltip = null;
         }
     }
 
+    // Function to create a tooltip element
     function createTooltip(content) {
         const tooltip = document.createElement('div');
-        tooltip.className = 'custom-post-preview';
+        tooltip.className = 'custom-post-preview'; // Assign the CSS class
         tooltip.textContent = content;
         document.body.appendChild(tooltip);
         return tooltip;
@@ -500,7 +442,7 @@ function PostViewFetchOPDetails()
 
     // Check if the current page URL has already been processed
     if (currentPageURL === prevPageURL) {
-        //console.log(`Skipping fetch for already processed page URL: ${currentPageURL}`);
+        console.log(`Skipping fetch for already processed page URL: ${currentPageURL}`);
         return; // Skip execution if the URL has already been processed
     }
 
