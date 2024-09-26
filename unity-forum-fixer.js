@@ -127,9 +127,15 @@ function AppendCustomCSS()
   /* added custom fields */
   .original-poster-span {font: 13px 'Inter', sans-serif !important; color: rgb(150, 150, 150); } /* original poster below post title */
   .latest-poster-span { display: block; word-break: break-all; max-width: 100%; font: 14px 'Inter', sans-serif !important;} /* activity, latest poster */
-	.combined-views-container {display: flex;justify-content: space-between;width: 100%;white-space: nowrap; font-size:13px;}
+	
+  .combined-replies-container {display: flex;justify-content: space-between;width: 100%;white-space: nowrap; font-size:14px; margin-bottom:2px;}
+  .combined-views-container {display: flex;justify-content: space-between;width: 100%;white-space: nowrap; font-size:13px;}
+    
+	.combined-replies-label {color: rgb(150, 150, 150); text-align: left;}
+	.combined-replies-number {color: var(--primary); margin-left: auto;text-align: right; font-size:15px !important;}
 	.combined-views-label {color: rgb(150, 150, 150); text-align: left;}
-	.combined-views-number {color: var(--primary); margin-left: auto;text-align: right;}
+	.combined-views-number {color: rgb(150, 150, 150); margin-left: auto;text-align: right;}
+  
 	.custom-post-username {margin-bottom:3px;color: var(--primary);}
   .custom-user-creation-date {width:45px;margin-top:6px;font: 13px 'Inter', sans-serif !important; color: rgb(150, 150, 150);}
   .custom-post-preview { position: absolute; max-width: 450px; max-height: 200px; background-color: white; border: 1px solid black; padding: 5px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); z-index: 1000; }
@@ -258,13 +264,13 @@ function TopicsViewCombineViewAndReplyCounts()
             combinedCell.className = 'num topic-list-data combined-views'; // Add class for styling if needed
             
             combinedCell.innerHTML = `
+                <div class="combined-replies-container">
+                    <span class="combined-replies-label">Replies:</span>
+                    <span class="combined-replies-number">${repliesCell.innerText}</span>
+                </div>
                 <div class="combined-views-container">
                     <span class="combined-views-label">Views:</span>
                     <span class="combined-views-number">${viewsCell.innerText}</span>
-                </div>
-                <div class="combined-views-container">
-                    <span class="combined-views-label">Replies:</span>
-                    <span class="combined-views-number">${repliesCell.innerText}</span>
                 </div>
             `;
 
