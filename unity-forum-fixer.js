@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.7 (19.09.2024)
+// @version      0.71 (26.09.2024)
 // @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/latest
