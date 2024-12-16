@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.72 (28.11.2024)
+// @version      0.73 (16.12.2024)
 // @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/latest
@@ -179,71 +179,68 @@ function NavBar()
 
 // FORUM VIEW
 
-function TopicsViewShowOriginalPosterInfo() 
-{
-    // Select all topic rows
+function TopicsViewShowOriginalPosterInfo() {
     const topicRows = document.querySelectorAll('tr.topic-list-item');
 
     topicRows.forEach(row => {
-        // Find the first 'a' element inside the 'posters topic-list-data' cell that does not have the 'latest' class (Original Poster)
-        let firstPosterLink = row.querySelector('td.posters.topic-list-data a:not(.latest)');
-        
-        // If there is no such element, it might be a single poster with 'latest single' class
-        if (!firstPosterLink) {
-            firstPosterLink = row.querySelector('td.posters.topic-list-data a.latest.single');
-        }
+        // Always take the first username in the posters column as the original poster
+        const postersColumn = row.querySelector('td.posters.topic-list-data');
+        const firstPosterAvatar = postersColumn ? postersColumn.querySelector('a[data-user-card]') : null;
 
-        if (firstPosterLink) {
-            // Extract the username from the 'data-user-card' attribute for the original poster
-            const originalPosterUsername = firstPosterLink.getAttribute('data-user-card');
+        if (firstPosterAvatar) {
+            const originalPosterUsername = firstPosterAvatar.getAttribute('data-user-card');
 
-            // Find the topic creation date from the title attribute in the activity column
+            // Extract creation date from the activity cell
             const activityCell = row.querySelector('td.activity');
             const titleText = activityCell ? activityCell.getAttribute('title') : '';
             const creationDateMatch = titleText.match(/Created: (.+?)(?:\n|$)/);
 
-            let creationDateFormatted = 'Unknown'; // Default to "Unknown" if no date is found
+            let creationDateFormatted = 'Unknown';
             if (creationDateMatch) {
                 const creationDateStr = creationDateMatch[1];
                 const creationDate = new Date(creationDateStr);
                 creationDateFormatted = formatDateString(creationDate);
             }
 
-            // Find the 'link-bottom-line' element to insert the original poster's name and creation date before it
+            // Insert the original poster info into the main-link cell
             const linkBottomLine = row.querySelector('td.main-link .link-bottom-line');
             if (linkBottomLine && !row.querySelector('.original-poster-span')) {
-                // Create a new span element for the original poster's username and creation date
                 const originalPosterSpan = document.createElement('span');
-                originalPosterSpan.textContent = originalPosterUsername+","+creationDateFormatted;
-                originalPosterSpan.className = 'original-poster-span'; // Adding a class to prevent duplication
-                originalPosterSpan.style.display = 'block';  // Ensure it's placed as a block element
+                originalPosterSpan.className = 'original-poster-span';
+                originalPosterSpan.style.display = 'block';
+                originalPosterSpan.textContent = `${originalPosterUsername}, ${creationDateFormatted}`;
 
-                // Insert the original poster span before the link-bottom-line
+                // Insert the span before the link-bottom-line
                 linkBottomLine.parentNode.insertBefore(originalPosterSpan, linkBottomLine);
             }
         }
 
-        // Find the most recent poster (always marked with 'latest')
+        // Handle the latest poster's info
         const latestPosterLink = row.querySelector('td.posters.topic-list-data a.latest');
         if (latestPosterLink) {
-            // Extract the username from the 'data-user-card' attribute
             const latestPosterUsername = latestPosterLink.getAttribute('data-user-card');
-
-            // Find the 'post-activity' element
             const postActivity = row.querySelector('td.activity .post-activity');
-            if (postActivity && !row.querySelector('.latest-poster-span')) {
-                // Create a new span element for the latest poster's username
-                const latestPosterSpan = document.createElement('span');
-                latestPosterSpan.textContent = latestPosterUsername;
-                latestPosterSpan.className = 'latest-poster-span'; // Adding a class to prevent duplication
-                latestPosterSpan.style.display = 'block';  // Ensure it's placed as a block element
 
-                // Insert the latest poster span before the <a> tag, placing it outside the link
+            if (postActivity && !row.querySelector('.latest-poster-span')) {
+                const latestPosterSpan = document.createElement('span');
+                latestPosterSpan.className = 'latest-poster-span';
+                latestPosterSpan.style.display = 'block';
+                latestPosterSpan.textContent = latestPosterUsername;
+
+                // Insert the latest poster span before the activity link
                 postActivity.parentNode.insertBefore(latestPosterSpan, postActivity);
             }
         }
     });
 }
+
+// Utility function to format dates
+function formatDateString(date) {
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return date.toLocaleDateString('en-GB', options);
+}
+
+
 
 function TopicsViewCombineViewAndReplyCounts()
 {
@@ -290,8 +287,9 @@ function TopicsViewCombineViewAndReplyCounts()
         viewsHeader.remove(); // Remove the "Views" header
     }
 }
-
-function FixPostActivityTime() {
+	
+	function FixPostActivityTime() 
+	{
     document.querySelectorAll('.relative-date').forEach(function (el) {
         const dataTime = parseInt(el.getAttribute('data-time'), 10);
         if (!dataTime) return;
@@ -324,86 +322,105 @@ function FixPostActivityTime() {
     });
 }
 
-  let prevTopicId = '';  // Global variable to store the previously fetched topicId
-    let currentTooltip = null;  // Global variable to store the currently visible tooltip
+let prevTopicId = '';  // Global variable to store the previously fetched topicId
+let currentTooltip = null;  // Global variable to store the currently visible tooltip
+let tooltipTarget = null;  // Track the current element triggering the tooltip
+let hoverTimeout = null;  // Timeout for delaying tooltip display
 
+// Initialize the mouseover event handler
+function OnMouseOverPostPreview() {
+    document.querySelectorAll('a.title.raw-link.raw-topic-link[data-topic-id]').forEach(function (element) {
+        const topicId = element.getAttribute('data-topic-id');
 
-    // Initialize the mouseover event handler
-    function OnMouseOverPostPreview() {
-        document.querySelectorAll('a.title.raw-link.raw-topic-link[data-topic-id]').forEach(function (element) {
-            const topicId = element.getAttribute('data-topic-id');
-
-            // Add mouseover event listener to the <a> elements only
-            element.addEventListener('mouseover', function (event) {
-                if (topicId !== prevTopicId) {  // Check if the post data was already fetched
+        // Add mouseover event listener to the <a> elements only
+        element.addEventListener('mouseover', function (event) {
+            tooltipTarget = element; // Set the current tooltip target
+            hoverTimeout = setTimeout(() => {
+                if (tooltipTarget === element && topicId !== prevTopicId) {  // Ensure the mouse is still over the same element
                     fetchPostDataAndShowTooltip(event, topicId, element);
                 }
-            });
-
-            // Add mouseout event listener to hide tooltip
-            element.addEventListener('mouseout', function () {hideTooltip();});
+            }, 250); // Delay tooltip display by 250ms
         });
-    }
 
-    // Function to fetch data and display tooltip
-    function fetchPostDataAndShowTooltip(event, topicId, element) 
-		{
-        const url = `https://discussions.unity.com/t/${topicId}.json`;
+        // Add mouseout event listener to clear timeout and hide tooltip
+        element.addEventListener('mouseout', function () {
+            tooltipTarget = null; // Clear the current tooltip target
+            clearTimeout(hoverTimeout); // Cancel the tooltip display timeout
+            hideTooltip();
+        });
+    });
 
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                // Extract necessary data from JSON (limit to 250 characters)
-                const rawPostContent = data['post_stream']['posts'][0]['cooked'];
-          			const postContent = rawPostContent.length > 250 ? rawPostContent.substring(0, 250) + "..." : rawPostContent;
-          			const plainText = stripHtmlTags(postContent);
-
-                // Update the global variable to store the fetched topicId
-                prevTopicId = topicId;
-
-                // Create and position the tooltip based on the element's position
-                showTooltip(element, plainText);
-            })
-            .catch(error => {
-                console.error('Error fetching post data:', error);
-            });
-    }
-
-    // Function to create and show the tooltip
-    function showTooltip(element, content) {
-        hideTooltip();  // Ensure any existing tooltip is removed first
-
-        // Create a new tooltip element
-        currentTooltip = createTooltip(content);
-
-        // Get the bounding rectangle of the <a> element
-        const rect = element.getBoundingClientRect();
-
-        // Position the tooltip relative to the <a> element
-        currentTooltip.style.top = `${window.scrollY + rect.top - currentTooltip.offsetHeight - 10}px`; // 10px above the element
-        currentTooltip.style.left = `${window.scrollX + rect.left}px`;
-      
-      currentTooltip.addEventListener('mouseover', function () {
-        hideTooltip();
-	    });
-    }
-
-    // Function to hide the tooltip
-    function hideTooltip() {
-        if (currentTooltip) {
-            currentTooltip.remove();
-            currentTooltip = null;
+    // Add a global mousemove listener to hide the tooltip if the mouse moves outside
+    document.addEventListener('mousemove', function (event) {
+        if (currentTooltip && (!tooltipTarget || !tooltipTarget.contains(event.target))) {
+            hideTooltip();
         }
-    }
+    });
+}
 
-    // Function to create a tooltip element
-    function createTooltip(content) {
-        const tooltip = document.createElement('div');
-        tooltip.className = 'custom-post-preview'; // Assign the CSS class
-        tooltip.textContent = content;
-        document.body.appendChild(tooltip);
-        return tooltip;
+// Function to fetch data and display tooltip
+function fetchPostDataAndShowTooltip(event, topicId, element) {
+    const url = `https://discussions.unity.com/t/${topicId}.json`;
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            // Extract necessary data from JSON (limit to 250 characters)
+            const rawPostContent = data['post_stream']['posts'][0]['cooked'];
+            const postContent = rawPostContent.length > 250 ? rawPostContent.substring(0, 250) + "..." : rawPostContent;
+            const plainText = stripHtmlTags(postContent);
+
+            // Update the global variable to store the fetched topicId
+            prevTopicId = topicId;
+
+            // Create and position the tooltip based on the element's position
+            showTooltip(element, plainText);
+        })
+        .catch(error => {
+            console.error('Error fetching post data:', error);
+        });
+}
+
+// Function to create and show the tooltip
+function showTooltip(element, content) {
+    hideTooltip();  // Ensure any existing tooltip is removed first
+
+    // Create a new tooltip element
+    currentTooltip = createTooltip(content);
+
+    // Get the bounding rectangle of the <a> element
+    const rect = element.getBoundingClientRect();
+
+    // Position the tooltip relative to the <a> element
+    currentTooltip.style.top = `${window.scrollY + rect.top - currentTooltip.offsetHeight - 10}px`; // 10px above the element
+    currentTooltip.style.left = `${window.scrollX + rect.left}px`;
+}
+
+// Function to hide the tooltip
+function hideTooltip() {
+    if (currentTooltip) {
+        currentTooltip.remove();
+        currentTooltip = null;
     }
+}
+
+// Function to create a tooltip element
+function createTooltip(content) {
+    const tooltip = document.createElement('div');
+    tooltip.className = 'custom-post-preview'; // Assign the CSS class
+    tooltip.textContent = content;
+    document.body.appendChild(tooltip);
+    return tooltip;
+}
+
+// Function to strip HTML tags from a string
+function stripHtmlTags(html) {
+    const tempDiv = document.createElement("div"); // Create a temporary <div> element
+    tempDiv.innerHTML = html; // Set its inner HTML to the input HTML string
+    return tempDiv.textContent || tempDiv.innerText || ""; // Return the text content without HTML tags
+}
+
+
 
 	function stripHtmlTags(html) 
 	{
