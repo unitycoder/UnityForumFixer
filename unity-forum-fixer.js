@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.73 (16.12.2024)
+// @version      0.8 (21.12.2024)
 // @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/latest
@@ -25,8 +25,22 @@
 			TopicsViewCombineViewAndReplyCounts();
       OnMouseOverPostPreview();
       
-      setTimeout(OnUpdate, 1000); // run loop to update activity times (since some script changes them back to original..)
+			// update notification panel icons
+      const currentUserButton = document.getElementById('toggle-current-user');
+      if (currentUserButton) {
+          currentUserButton.addEventListener('click', () => {
+            console.log(1111);
+              // Add a slight delay to ensure the dropdown content is fully rendered
+              setTimeout(replaceNotificationIcons, 1000);
+          });
+      } else {
+          console.warn('Current user button not found.');
+      }
+
+      
+      setTimeout(OnUpdate, 1000); // run loop to update certain itesm (since something is updating them, without page refresh..)
     });
+  
   
 })();
 
@@ -39,6 +53,9 @@ function OnUpdate()
   PostViewShowOriginalPosterInfo();
   PostViewFetchOPDetails();
   
+	// TODO only refresh these when notification panel is opened
+	//replaceNotificationIcons();
+  
   setTimeout(OnUpdate, 1000);
 }
 
@@ -50,9 +67,12 @@ function AppendCustomCSS()
 	var style = document.createElement('style');
 	style.textContent = 
   `
-  // latest posts view
-	.show-more.has-topics { width: 35%;!important;} /* updated topics alert */
-  .alert.alert-info.clickable {width: 35%; padding:3px !important;} /* updated topics alert */
+  /* top banner */
+  .before-header-panel-outlet { text-align: center; }
+  .show-more.has-topics { width: 35% !important; }
+  /* latest posts view */
+	.show-more.has-topics { width: 35%;!important;}
+  .alert.alert-info.clickable {width: 35%; padding:3px !important;}
             
   #main-outlet {width:auto !important;} /* smaller main forum width */
   
@@ -102,7 +122,7 @@ function AppendCustomCSS()
 	.user-name { margin-bottom: 5px; font-weight: bold; text-align: center; font-size: 0.9em; color: var(--primary); text-decoration: none; display: block; word-wrap: break-word; white-space: normal; width: 100%; } 
 	.user-name:hover { color: rgb(82,132,189); text-decoration: underline; }
   .names.trigger-user-card {visibility: hidden !important;}
-/*  .row { display: flex; } */
+	/*  .row { display: flex; } */
 	.topic-avatar { flex-basis: 10%; margin:0 !important; max-width: 45px;} 
 	.topic-body { flex-basis: 90%; } /* Ensure the main content adjusts accordingly */
   .topic-avatar {background-color: #d1d1d132;}
@@ -139,6 +159,7 @@ function AppendCustomCSS()
 	.custom-post-username {margin-bottom:3px;color: var(--primary);}
   .custom-user-creation-date {width:45px;margin-top:6px;font: 13px 'Inter', sans-serif !important; color: rgb(150, 150, 150);}
   .custom-post-preview { position: absolute; max-width: 450px; max-height: 200px; background-color: var(--primary-low); border: 1px solid black; padding: 5px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); z-index: 1000; }
+
   
   `;
 	document.head.appendChild(style);
@@ -464,7 +485,7 @@ function PostViewFetchOPDetails()
 
     // Check if the current page URL has already been processed
     if (currentPageURL === prevPageURL) {
-        console.log(`Skipping fetch for already processed page URL: ${currentPageURL}`);
+        //console.log(`Skipping fetch for already processed page URL: ${currentPageURL}`);
         return; // Skip execution if the URL has already been processed
     }
 
@@ -546,6 +567,92 @@ window.addEventListener('popstate', function() {PostViewFetchOPDetails();});
 window.addEventListener('pushstate', function() {PostViewFetchOPDetails();});
 window.addEventListener('replacestate', function() {PostViewFetchOPDetails();});
 */
+
+// new post icon in followed topic
+function replaceNotificationIcons() {
+    // Define configuration for each notification type
+    const notificationConfig = [
+        {
+            selector: '.notification.read.posted',
+            textContent: '1',
+            backgroundColor: 'rgba(255, 0, 0, 0.6)',
+            color: 'white',
+            borderRadius: '50%',
+          	fontSize: '12px'
+        },
+        {
+            selector: '.notification.read.reaction',
+            textContent: '👍',
+            backgroundColor: 'none',
+            color: 'white',
+            borderRadius: '4px',
+          	fontSize: '1.25em'
+        },
+        {
+            selector: '.notification.read.mentioned',
+            textContent: '@',
+            backgroundColor: 'none',
+            color: 'var(--success)',
+            borderRadius: '4px',
+          	fontSize: '1.25em'
+        },
+        {
+            selector: '.notification.read.replied',
+            textContent: '↩️',
+            backgroundColor: 'none',
+            color: 'white',
+            borderRadius: '4px',
+          	fontSize: '1.25em'
+        },
+        {
+            selector: '.notification.read.granted-badge',
+            textContent: '🏆',
+            backgroundColor: 'none',
+            color: 'white',
+            borderRadius: '4px',
+          	fontSize: '1.25em'
+        },
+    ];
+
+    // Process each notification type
+    notificationConfig.forEach(({ selector, textContent, backgroundColor, color, borderRadius, fontSize }) => {
+        const notificationItems = document.querySelectorAll(selector);
+
+        if (notificationItems.length > 0) {
+            notificationItems.forEach((item) => {
+                const icon = item.querySelector('svg.fa.d-icon');
+                if (icon) {
+                    // Create a replacement element
+                    const newIcon = document.createElement('div');
+                    newIcon.style.cssText = `
+                        display: inline-flex !important;
+                        justify-content: center !important;
+                        align-items: center !important;
+                        background-color: ${backgroundColor};
+                        color: ${color};
+                        font-size: ${fontSize};
+                        font-weight: bold;
+                        padding: 5px !important;
+                        box-sizing: border-box !important;
+                        width: 20px;
+                        height: 20px;
+                        min-width: 20px;
+                        min-height: 20px;
+                        line-height: 1;
+                        margin-right: 8px;
+                        border-radius: ${borderRadius} !important;
+                        text-align: center;
+                    `;
+                    newIcon.textContent = textContent;
+
+                    // Replace the original SVG icon
+                    icon.replaceWith(newIcon);
+                }
+            });
+        }
+    });
+}
+
 
 
 
