@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.8 (21.12.2024)
+// @version      0.81 (21.12.2024)
 // @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/latest
@@ -24,12 +24,12 @@
       PostViewShowOriginalPosterInfo();
 			TopicsViewCombineViewAndReplyCounts();
       OnMouseOverPostPreview();
+      AddOnHoverOpenNotificationPanel();
       
 			// update notification panel icons
       const currentUserButton = document.getElementById('toggle-current-user');
       if (currentUserButton) {
           currentUserButton.addEventListener('click', () => {
-            console.log(1111);
               // Add a slight delay to ensure the dropdown content is fully rendered
               setTimeout(replaceNotificationIcons, 1000);
           });
@@ -130,6 +130,7 @@ function AppendCustomCSS()
 	/*.avatar { margin: 4px; } bug in topic view*/
   .topic-body {padding: 0 !important;}
   .topic-map.--op {display: none !important;} /* hide view count under op post, could move it somewhere else later */
+  .container.posts {gap:unset !important;} /* post view thinner */
   
   .user-signature {max-height:32px; overflow:hidden;padding: 8px 8px 4px 24px !important;} /* max size for signature */
   .avatar-flair {top:55px; right: -2px; bottom:unset !important;}
@@ -159,6 +160,9 @@ function AppendCustomCSS()
 	.custom-post-username {margin-bottom:3px;color: var(--primary);}
   .custom-user-creation-date {width:45px;margin-top:6px;font: 13px 'Inter', sans-serif !important; color: rgb(150, 150, 150);}
   .custom-post-preview { position: absolute; max-width: 450px; max-height: 200px; background-color: var(--primary-low); border: 1px solid black; padding: 5px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); z-index: 1000; }
+
+	code.lang-auto, code.language-csharp { font-family: 'Fira Code', monospace; }
+  .select-kit .select-kit-row {padding: 0px 0px 0px 6px !important;} /* project area dropdown */
 
   
   `;
@@ -651,6 +655,23 @@ function replaceNotificationIcons() {
             });
         }
     });
+}
+
+function AddOnHoverOpenNotificationPanel() {
+    const currentUserButton = document.getElementById('toggle-current-user');
+
+    if (currentUserButton) {
+        // Add mouseover event to trigger the button's click
+        currentUserButton.addEventListener('mouseenter', () => {
+            // Check if the dropdown is already open
+            const dropdown = document.querySelector('.user-menu.revamped.menu-panel.drop-down');
+            if (!dropdown || !dropdown.classList.contains('open')) {
+                currentUserButton.click(); // Simulate a click to open the dropdown
+            }
+        });
+    } else {
+        console.warn('Current user button not found.');
+    }
 }
 
 
