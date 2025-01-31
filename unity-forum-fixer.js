@@ -6,7 +6,6 @@
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/latest
 // @match        https://discussions.unity.com/t/*
-// @require      https://code.jquery.com/jquery-3.6.0.min.js
 // ==/UserScript==
 
 
