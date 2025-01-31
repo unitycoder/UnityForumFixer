@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.82 (27.01.2025)
+// @version      0.83 (31.01.2025)
 // @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/latest
@@ -26,7 +26,6 @@
 			TopicsViewCombineViewAndReplyCounts();
       OnMouseOverPostPreview();
       AddOnHoverOpenNotificationPanel();
-			FixPinButton();
       
       
 			// update notification panel icons
@@ -677,72 +676,6 @@ function AddOnHoverOpenNotificationPanel() {
     }
 }
 
-
-function FixPinButton() {
-    // Select all buttons with the .topic-status class
-    const buttons = document.querySelectorAll('.topic-statuses .topic-status');
-
-    // Get the CSRF token from the meta tags in the page head
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-
-    // Check if the CSRF token is available
-    if (!csrfToken) {
-        console.error('CSRF token not found');
-        return;
-    }
-
-    if (buttons.length > 0) {
-        buttons.forEach((button) => {
-            // Add a click event listener to each button
-            button.addEventListener('click', function (event) {
-                event.preventDefault(); // Prevent the default link behavior
-
-                // Find the post ID by looking for the nearest <a> tag with a valid href
-                const postLink = button.closest('td').querySelector('a.title');
-                const postId = postLink?.getAttribute('data-topic-id');
-
-                if (!postId) {
-                    console.error('Post ID not found for this button');
-                    return;
-                }
-
-                console.log('Post ID:', postId); // Debug log to confirm the ID
-
-                // Construct the PUT request URL using the extracted ID
-                const url = `https://discussions.unity.com/t/${postId}/clear-pin`;
-
-                // Send a PUT request with the CSRF token
-                $.ajax({
-                    url: url,
-                    type: 'PUT',
-                    headers: {
-                        'X-CSRF-Token': csrfToken, // Include the CSRF token
-                    },
-                    success: function (response) {
-                        console.log('PUT request successful:', response);
-
-                        // Hide the parent row of the clicked button
-                        const parentRow = button.closest('tr');
-                        if (parentRow) {
-                            parentRow.style.display = 'none'; // Hides the row
-                            console.log(`Row with Post ID ${postId} hidden.`);
-                        } else {
-                            console.error('Parent row not found.');
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error('XHR Status:', xhr.status);
-                        console.error('XHR Response Text:', xhr.responseText);
-                        console.error('Error:', error || 'Unknown error');
-                        alert('Error sending request.');
-                    },
-                });
-            });
-        });
-    } else {
-        console.error('No notification buttons found.');
-    }
-}
 
 
 
