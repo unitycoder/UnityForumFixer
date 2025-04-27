@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.84 (27.04.2025)
+// @version      0.85 (27.04.2025)
 // @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/latest
@@ -164,8 +164,15 @@ function AppendCustomCSS()
 
 	code.lang-auto, code.language-csharp { font-family: 'Fira Code', monospace; }
   .select-kit .select-kit-row {padding: 0px 0px 0px 6px !important;} /* project area dropdown */
-
+  /* notification dismiss button */
   
+	.quick-access-panel .panel-body-bottom {position:absolute;top:0;left:0;right:0;margin:8px 0;display:flex;justify-content:flex-end;padding:0 8px;background:transparent;border:none;box-shadow:none;}
+	.quick-access-panel .btn.no-text.btn-default.show-all { height:20px; }
+	.quick-access-panel .notifications-dismiss {font-size:0.8em;padding:4px 8px;height:20px; min-width:50%;}
+  .panel-body-contents {margin-top:30px !important;}
+
+  img.avatar[title] { pointer-events: none; }
+
   `;
 	document.head.appendChild(style);
 }
@@ -660,20 +667,29 @@ function replaceNotificationIcons() {
 
 function AddOnHoverOpenNotificationPanel() {
     const currentUserButton = document.getElementById('toggle-current-user');
+    const headerArea = document.getElementById('main-outlet');
+    const dropdown = document.querySelector('.user-menu.revamped.menu-panel.drop-down');
 
-    if (currentUserButton) {
-        // Add mouseover event to trigger the button's click
+    if (currentUserButton && headerArea) {
+        // Open the panel on hover over the user button
         currentUserButton.addEventListener('mouseenter', () => {
-            // Check if the dropdown is already open
-            const dropdown = document.querySelector('.user-menu.revamped.menu-panel.drop-down');
-            if (dropdown==null) {
-                currentUserButton.click(); // Simulate a click to open the dropdown
+            if (!dropdown) {
+                currentUserButton.click();
             }
         });
+
+        // Close the panel when mouse moves over the header area
+        headerArea.addEventListener('mouseenter', () => {
+            if (dropdown) {
+                currentUserButton.click(); // Simulate click outside to close
+            }
+        });
+
     } else {
-        console.warn('Current user button not found.');
+        console.warn('Current user button or header area not found.');
     }
 }
+
 
 
 
