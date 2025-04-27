@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.83 (31.01.2025)
+// @version      0.84 (27.04.2025)
 // @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/latest
@@ -666,7 +666,7 @@ function AddOnHoverOpenNotificationPanel() {
         currentUserButton.addEventListener('mouseenter', () => {
             // Check if the dropdown is already open
             const dropdown = document.querySelector('.user-menu.revamped.menu-panel.drop-down');
-            if (!dropdown || !dropdown.classList.contains('open')) {
+            if (dropdown==null) {
                 currentUserButton.click(); // Simulate a click to open the dropdown
             }
         });
