@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.85 (27.04.2025)
+// @version      0.86 (27.04.2025)
 // @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/latest
@@ -668,11 +668,11 @@ function replaceNotificationIcons() {
 function AddOnHoverOpenNotificationPanel() {
     const currentUserButton = document.getElementById('toggle-current-user');
     const headerArea = document.getElementById('main-outlet');
-    const dropdown = document.querySelector('.user-menu.revamped.menu-panel.drop-down');
 
     if (currentUserButton && headerArea) {
         // Open the panel on hover over the user button
         currentUserButton.addEventListener('mouseenter', () => {
+		    const dropdown = document.querySelector('.user-menu.revamped.menu-panel.drop-down');
             if (!dropdown) {
                 currentUserButton.click();
             }
@@ -680,6 +680,7 @@ function AddOnHoverOpenNotificationPanel() {
 
         // Close the panel when mouse moves over the header area
         headerArea.addEventListener('mouseenter', () => {
+		    const dropdown = document.querySelector('.user-menu.revamped.menu-panel.drop-down');
             if (dropdown) {
                 currentUserButton.click(); // Simulate click outside to close
             }
