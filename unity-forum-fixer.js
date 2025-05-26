@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.86 (27.04.2025)
+// @version      0.87 (26.05.2025)
 // @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/latest
@@ -164,12 +164,12 @@ function AppendCustomCSS()
 
 	code.lang-auto, code.language-csharp { font-family: 'Fira Code', monospace; }
   .select-kit .select-kit-row {padding: 0px 0px 0px 6px !important;} /* project area dropdown */
-  /* notification dismiss button */
   
+  /* notification dismiss button */ 
 	.quick-access-panel .panel-body-bottom {position:absolute;top:0;left:0;right:0;margin:8px 0;display:flex;justify-content:flex-end;padding:0 8px;background:transparent;border:none;box-shadow:none;}
 	.quick-access-panel .btn.no-text.btn-default.show-all { height:20px; }
 	.quick-access-panel .notifications-dismiss {font-size:0.8em;padding:4px 8px;height:20px; min-width:50%;}
-  .panel-body-contents {margin-top:30px !important;}
+  .panel-body-contents {margin-top:40px !important;}
 
   img.avatar[title] { pointer-events: none; }
 
