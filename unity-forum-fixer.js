@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.87 (26.05.2025)
+// @version      0.88 (27.07.2025)
 // @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/latest
@@ -465,29 +465,28 @@ function stripHtmlTags(html) {
 
 // POST VIEW
 
-function PostViewShowOriginalPosterInfo() 
-{
-    // Select all elements that contain the avatar with a data-user-card attribute
-    document.querySelectorAll('.trigger-user-card.main-avatar').forEach(function(avatar) {
-        // Check if the user link has already been added
-        if (avatar.parentNode.querySelector('.custom-post-username')) {
-            return; // Skip to the next avatar if the user link already exists
-        }
+function PostViewShowOriginalPosterInfo() {
+    // Loop through all avatar anchors that represent a user
+    document.querySelectorAll('.post-avatar').forEach(postAvatar => {
+        const avatarLink = postAvatar.querySelector('a.main-avatar[data-user-card]');
+        if (!avatarLink) return;
 
-        // Get the user name from the data-user-card attribute
-        var userName = avatar.getAttribute('data-user-card');
+        // Check if we've already added the username
+        if (postAvatar.querySelector('.custom-post-username')) return;
 
-        // Create a new anchor element to wrap the user name and link to the profile
-        var userLink = document.createElement('a');
+        const username = avatarLink.getAttribute('data-user-card');
+        if (!username) return;
+
+        const userLink = document.createElement('a');
         userLink.className = 'custom-post-username';
-        userLink.href = 'https://discussions.unity.com/u/' + userName;
-        userLink.textContent = userName;
+        userLink.href = `/u/${username}`;
+        userLink.textContent = username;
 
-        // Insert the user name link before the avatar image
-        avatar.parentNode.insertBefore(userLink, avatar);
+        // Insert username under the avatar
+        postAvatar.appendChild(userLink);
     });
- 
 }
+
 
 let prevPageURL = '';
 function PostViewFetchOPDetails() 
@@ -495,6 +494,7 @@ function PostViewFetchOPDetails()
     // Get the current page URL
     const currentPageURL = window.location.href;
 
+  
     // Check if the current page URL has already been processed
     if (currentPageURL === prevPageURL) {
         //console.log(`Skipping fetch for already processed page URL: ${currentPageURL}`);
@@ -507,13 +507,15 @@ function PostViewFetchOPDetails()
     // Select all elements with the specified classes to get usernames
     const usernames = new Set(); // Using a Set to avoid duplicates
 
-    // Find usernames from elements with class 'trigger-user-card main-avatar'
-    document.querySelectorAll('.trigger-user-card.main-avatar').forEach(function(avatar) {
+  // Find usernames from main avatar links
+    document.querySelectorAll('a.main-avatar[data-user-card]').forEach(function(avatar) {
         const userName = avatar.getAttribute('data-user-card');
         if (userName) {
-            usernames.add(userName); // Add to the Set
+            usernames.add(userName);
         }
     });
+
+  
 
     // Convert the Set to an Array and limit to the first 3 users
     const userArray = Array.from(usernames).slice(0, 3);
@@ -557,7 +559,7 @@ function PostViewFetchOPDetails()
                 creationDateElement.textContent = `Joined: ${formattedDate}`;
 
                 // Find all post-avatar divs associated with this user
-                document.querySelectorAll('.trigger-user-card.main-avatar').forEach(function(avatarElement) {
+                document.querySelectorAll('a.main-avatar[data-user-card]').forEach(function(avatarElement) {
                     if (avatarElement.getAttribute('data-user-card') === userName) {
                         const postAvatarDiv = avatarElement.closest('.post-avatar');
                         if (postAvatarDiv && !postAvatarDiv.querySelector('.custom-user-creation-date')) {
