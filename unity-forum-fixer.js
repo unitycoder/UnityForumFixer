@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.88 (27.07.2025)
+// @version      0.89 (22.11.2025)
 // @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/latest
@@ -183,6 +183,7 @@ function AddAssetStoreLink()
 {
   // Create the new list item
   var newListItem = document.createElement('li');
+  newListItem.className = "headerLink headerLink--vdm support-custom-header-links headerLink--remove";
   var newLink = document.createElement('a');
   newLink.href = 'https://assetstore.unity.com/';
   newLink.className = '';
@@ -192,11 +193,15 @@ function AddAssetStoreLink()
   // Append the link to the new list item
   newListItem.appendChild(newLink);
 
-  // Find the correct <ol> element by its class name and append the new list item
-  var navMenu = document.querySelector('ol.unity-header-main-links');
+  // Find the correct element by its class name and append the new list item
+  var navMenu = document.querySelector('.custom-header-links');
   if (navMenu) {
     navMenu.appendChild(newListItem);
   }
+  
+  // center the div also
+  var topBar = document.querySelector(".before-header-panel-outlet");
+  topBar.style = "display: block !important;";
 }
 
 function NavBar()
