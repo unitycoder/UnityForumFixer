@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.89 (22.11.2025)
+// @version      0.90 (09.04.2026)
 // @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/latest
@@ -529,7 +529,7 @@ function PostViewFetchOPDetails()
     userArray.forEach(function(userName) {
         const url = `https://discussions.unity.com/u/${userName}/card.json`;
 
-        console.log(`Fetching data from: ${url}`);
+        //console.log(`Fetching data from: ${url}`);
 
         // Use fetch to make a cross-origin request
         fetch(url, {
@@ -546,7 +546,7 @@ function PostViewFetchOPDetails()
             return response.json(); // Parse the JSON data
         })
         .then(data => {
-            console.log(`Data for ${userName}:`, data); // Print the JSON data to console
+            //console.log(`Data for ${userName}:`, data); // Print the JSON data to console
 
             // Get the user creation date
             const createdAt = data.user.created_at;
