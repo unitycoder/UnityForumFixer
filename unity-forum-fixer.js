@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.90 (09.04.2026)
+// @version      0.90 (15.10.2026)
 // @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/latest
@@ -17,7 +17,6 @@
     {
       
       AppendCustomCSS();
-      AddAssetStoreLink();
       NavBar();
       TopicsViewShowOriginalPosterInfo(); // TODO needs some css adjustments for name location
       FixPostActivityTime();
@@ -25,6 +24,7 @@
 			TopicsViewCombineViewAndReplyCounts();
       OnMouseOverPostPreview();
       AddOnHoverOpenNotificationPanel();
+      setTimeout(OnAfterLoadingDelay, 1000);
       
       
 			// update notification panel icons
@@ -38,12 +38,16 @@
           console.warn('Current user button not found.');
       }
 
-      
-      setTimeout(OnUpdate, 1000); // run loop to update certain itesm (since something is updating them, without page refresh..)
+      setTimeout(OnUpdate, 1100); // run loop to update certain items (since something is updating them, without page refresh..)
     });
   
   
 })();
+
+function OnAfterLoadingDelay()
+{
+  AddAssetStoreLink();
+}
 
 // runs every second to update things (if you scroll the page, need to update new data)
 // TODO could be better to catch page change/update some other way (xhrevent, mutation..), since it doesnt update now if click some item (like open post)
@@ -57,7 +61,7 @@ function OnUpdate()
 	// TODO only refresh these when notification panel is opened
 	//replaceNotificationIcons();
   
-  setTimeout(OnUpdate, 1000);
+  setTimeout(OnUpdate, 1100);
 }
 
 
@@ -201,7 +205,12 @@ function AddAssetStoreLink()
   
   // center the div also
   var topBar = document.querySelector(".before-header-panel-outlet");
-  topBar.style = "display: block !important;";
+  if (topBar != null)
+  {
+	  topBar.style = "display: block !important;";
+  }else{
+    console.log("Cannot find topBar element..");
+  }
 }
 
 function NavBar()
@@ -529,7 +538,7 @@ function PostViewFetchOPDetails()
     userArray.forEach(function(userName) {
         const url = `https://discussions.unity.com/u/${userName}/card.json`;
 
-        //console.log(`Fetching data from: ${url}`);
+        console.log(`Fetching data from: ${url}`);
 
         // Use fetch to make a cross-origin request
         fetch(url, {
@@ -546,7 +555,7 @@ function PostViewFetchOPDetails()
             return response.json(); // Parse the JSON data
         })
         .then(data => {
-            //console.log(`Data for ${userName}:`, data); // Print the JSON data to console
+            console.log(`Data for ${userName}:`, data); // Print the JSON data to console
 
             // Get the user creation date
             const createdAt = data.user.created_at;
