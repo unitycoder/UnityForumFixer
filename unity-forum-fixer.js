@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UnityForumFixer
 // @namespace    https://unitycoder.com/
-// @version      0.90 (15.10.2026)
+// @version      24.11.2026
 // @description  Fixes For Unity Forums  - https://github.com/unitycoder/UnityForumFixer
 // @author       unitycoder.com
 // @match        https://discussions.unity.com/latest
@@ -175,7 +175,12 @@ function AppendCustomCSS()
 	.quick-access-panel .notifications-dismiss {font-size:0.8em;padding:4px 8px;height:20px; min-width:50%;}
   .panel-body-contents {margin-top:40px !important;}
 
-  img.avatar[title] { pointer-events: none; }
+/* Hide the Created column */
+	.topic-list th.created,.topic-list td.created-at {display: none !important;}
+
+  img.avatar[title] { pointer-events: none; 
+
+  }
 
   `;
 	document.head.appendChild(style);
@@ -255,7 +260,19 @@ function TopicsViewShowOriginalPosterInfo() {
                 const originalPosterSpan = document.createElement('span');
                 originalPosterSpan.className = 'original-poster-span';
                 originalPosterSpan.style.display = 'block';
-                originalPosterSpan.textContent = `${originalPosterUsername}, ${creationDateFormatted}`;
+                // Create a clickable username using the existing profile URL
+                const posterLink = document.createElement('a');
+                posterLink.href = firstPosterAvatar.getAttribute('href');
+                posterLink.textContent = originalPosterUsername;
+                posterLink.className = 'original-poster-link';
+                posterLink.setAttribute('data-user-card', originalPosterUsername);
+                posterLink.style.setProperty('color', 'rgb(150, 150, 150)', 'important');
+
+                // Append username and creation date separately
+                originalPosterSpan.appendChild(posterLink);
+                originalPosterSpan.appendChild(
+                    document.createTextNode(`, ${creationDateFormatted}`)
+                );
 
                 // Insert the span before the link-bottom-line
                 linkBottomLine.parentNode.insertBefore(originalPosterSpan, linkBottomLine);
